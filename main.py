@@ -7,8 +7,8 @@ d_t = 0.0002  # Adjust the time step if needed
 n_steps = 50
 
 # Set domain size
-L_x, L_y = 100, 100  # Length in x and y direction
-N_x, N_y = 101, 101  # Number of grid points in x and y direction
+L_x, L_y = 300, 300  # Length in x and y direction
+N_x, N_y = 301, 301  # Number of grid points in x and y direction
 
 # Define grid
 x, y = np.linspace(0, L_x, N_x), np.linspace(0, L_y, N_y)

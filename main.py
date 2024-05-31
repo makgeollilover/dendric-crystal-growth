@@ -1,24 +1,34 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+
+    # Define time steps and number of steps
+d_t = 0.0002  # Adjust the time step if needed
+n_steps = 50
+
 # Set domain size
-L_x, L_y = 50, 50  # Length in x and y direction
-N_x, N_y = 51, 51  # Number of grid points in x and y direction
+L_x, L_y = 100, 100  # Length in x and y direction
+N_x, N_y = 101, 101  # Number of grid points in x and y direction
 
 # Define grid
 x, y = np.linspace(0, L_x, N_x), np.linspace(0, L_y, N_y)
-X, Y = np.meshgrid(x, y)
 
 # Grid spacing
-h = x[1] - x[0]
-Klist = [0.8,1.0,2.0]
+h = 0.003 #x[1] - x[0]
+Klist = [1]
 for K in Klist:
     # Set initial conditions
     p_0 = 0  # 0 = liquid, 1 = solid
     T_0 = 298.15  # Room temperature
 
-    alpha = 0.01  # Thermal diffusivity
-    tau = 0.003
+    alpha = 0.03  # Thermal diffusivity
+    delta = 0.040 #anisotropy strength
+    epsilon_bar = 0.01 #average anisotropy
+    mode = 6
+
+    theta_0 = 1/2*np.pi
+    tau = 0.0003
+
     #K = 2  # Dimensionless latent heat
     m = 0.45
 
@@ -37,20 +47,25 @@ for K in Klist:
     #            p[i, j] = 1
 
     # Set a ring-shaped seed
+#    seed_center = (L_x / 2, L_y / 2)  # Position
+#    r_inner = 8  # Inner radius of the ring
+#    r_outer = 9  # Outer radius of the ring
+#
+#    for i in range(N_x):
+#        for j in range(N_y):
+#            r_squared = (x[i] - seed_center[0])**2 + (y[j] - seed_center[1])**2
+#            if r_inner**2 < r_squared < r_outer**2:
+#                p[i, j] = 1
+
+        # Set a line-shaped seed from the center
     seed_center = (L_x / 2, L_y / 2)  # Position
-    r_inner = 8  # Inner radius of the ring
-    r_outer = 9  # Outer radius of the ring
+    line_length = 10  # Half-length of the line
 
-    for i in range(N_x):
-        for j in range(N_y):
-            r_squared = (x[i] - seed_center[0])**2 + (y[j] - seed_center[1])**2
-            if r_inner**2 < r_squared < r_outer**2:
-                p[i, j] = 1
+    for j in range(N_y):
+        if abs(y[j] - seed_center[1]) < line_length:
+            p[j,N_x // 2] = 1
 
 
-    # Define time steps and number of steps
-    d_t = 0.002  # Adjust the time step if needed
-    n_steps = 1000
 
 
     # Plot initial conditions
@@ -89,6 +104,8 @@ for K in Klist:
                 laplacian_p = ((p[i+1, j]+ p[i, j-1]) + p[i, j+1] + p[i-1, j] - 4*p[i, j]) / h**2
                 p_update = 1/tau*d_t * (laplacian_p - p[i, j] * (1 - p[i, j]) * (p[i, j] - 0.5 + m))
                 p_new[i, j] = p[i, j] + p_update
+                #attempt to implement a smooth function
+                p_new[i,j] = np.clip(p_new[i,j],0,1)
 
         # Apply zero flux boundary conditions for phase field
         p_new[0, :] = p_new[1, :]
@@ -97,7 +114,7 @@ for K in Klist:
         p_new[:, -1] = p_new[:, -2]
 
             # Ensure phase field values remain between 0 and 1
-        p_new = np.clip(p_new, 0, 1)
+        #p_new = np.clip(p_new, 0, 1)
         #p_new = np.round(p_new)
 
         # Update temperature field
@@ -118,7 +135,7 @@ for K in Klist:
         T = T_new.copy()
 
         # Debugging: Print some values at certain steps
-        if step == 200 or step == 1 or step == 0:# == 0:
+        if step == 10 or step == 1 or step == 0 or step == 20 or step == 30:# == 0:
             print(f'Step {step}: max(p)={np.max(p)}, min(p)={np.min(p)}, max(T)={np.max(T)}, min(T)={np.min(T)}')
             #print(T[9,9])
             plt.figure()
